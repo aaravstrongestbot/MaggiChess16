@@ -26,21 +26,18 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    
-     - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Python Dependency Installation
+        uses: py-actions/py-dependency-install@v4.0.0
         
-      - name: Inject Lichess Token
+      - name: Injection For my Repo
         run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
+          
+      - name: Stockfish
+        run: |
+          chmod +x ./engines/stockfish1
 
-      - name: Running Stockfish
-        run: 
-         chmod +x ./engines/stockfish
-
-      - name: Run the bot
-        run: python3 user_interface.py --matchmaking
+      - name: Stockfish
+        run: python user_interface.py  --matchmaking
