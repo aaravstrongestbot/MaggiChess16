@@ -108,7 +108,7 @@ online_moves:
 #   max_moves: 1                          # Max number of moves played from chessdb. (Comment this line for max moves)
   online_egtb:
     enabled: true                         # Activate online endgame tablebases from Lichess.
-    min_time: 5                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
+    min_time: 20                           # Time the bot must have at least to use the online move. +10 seconds in games without increment.
     timeout: 3                            # Time the server has to respond.
 
 offer_draw:
@@ -125,7 +125,7 @@ resign:
   against_humans: true                    # Activate whether these settings should apply against humans.
 
 challenge:                                # Incoming challenges. (Commenting allowed)
-  concurrency: 2                          # Number of games to play simultaneously.
+  concurrency: 1                          # Number of games to play simultaneously.
   bullet_with_increment_only: false       # Whether bullet games against BOTs should only be accepted with increment.
 # min_increment: 0                        # Minimum amount of increment to accept a challenge.
 # max_increment: 180                      # Maximum amount of increment to accept a challenge.
