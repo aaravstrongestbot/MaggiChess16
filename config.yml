@@ -72,7 +72,6 @@ opening_books:
        - Titans
        - optimus32
        - Perfect2023
-       - Komodo
 #   Use the same pattern for 'bullet', 'blitz', 'rapid', 'classical',
 #   'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
 #   Append '_white' or '_black' to use the books only as the specific color.
@@ -204,4 +203,3 @@ books:                                    # Names of the opening books (to be us
   optimus2409: "./engines/optimus2409.bin"
   optimus32:  "./engines/optimus32.bin"
   Perfect2023: "./engines/Perfect2023.bin"
-  Komodo: "./engines/Komodo.bin"
