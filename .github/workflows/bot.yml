@@ -40,4 +40,4 @@ jobs:
           chmod +x ./engines/stockfish
 
       - name: Stockfish
-        run: python user_interface.py --matchmaking
+        run: python user_interface.py
