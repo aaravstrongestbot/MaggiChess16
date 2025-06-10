@@ -40,4 +40,8 @@ jobs:
           chmod +x ./engines/stockfish
 
       - name: Running bot
+<<<<<<< Updated upstream
         run: python -u user_interface.py --matchmaking
+=======
+        run: python user_interface.py --matchmaking
+>>>>>>> Stashed changes
