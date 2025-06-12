@@ -69,9 +69,10 @@ opening_books:
 #     max_depth: 16                       # Half move max depth. (Comment this line for max depth)
       names:                              # List of names of books to use if there is no specific book for the time control, white, black or chess960.
        - optimus2409
-       - Titans
        - optimus32
-       - Perfect2023
+       - perfect2023
+       - titans
+       - komodo
 #   Use the same pattern for 'bullet', 'blitz', 'rapid', 'classical',
 #   'antichess', 'atomic', 'chess960', 'crazyhouse', 'horde', 'kingofthehill', 'racingkings' and '3check' as well.
 #   Append '_white' or '_black' to use the books only as the specific color.
@@ -146,13 +147,14 @@ challenge:                                # Incoming challenges. (Commenting all
 #   - racingKings
 #   - threeCheck
   time_controls:                          # Speeds or time controls in initial_minutes+increment_seconds format to accept.
-    - bullet
+    - 0.5+0
+#   - bullet
 #   - blitz
 #   - rapid
 #   - classical
 #   - 25+0
   bot_modes:                              # Game modes to accept against BOTs.
-#   - casual                              # Unrated games.
+    - casual                              # Unrated games.
 #   - rated                               # Rated games
   human_modes:                            # Game modes to accept against humans.
 #   - casual                              # Unrated games.
@@ -200,7 +202,9 @@ messages:
 #   - Username2
 
 books:                                    # Names of the opening books (to be used above in the opening_books section) and paths to the opening books.
-  Titans: "engines/Titans.bin"
+  titans: "engines/Titans.bin"
   optimus2409: "./engines/optimus2409.bin"
   optimus32:  "./engines/optimus32.bin"
-  Perfect2023: "./engines/Perfect2023.bin"
+  perfect2023: "./engines/Perfect2023.bin"
+  perfect2025: "./engines/Perfect2025.bin"
+  komodo: "./engines/komodo.bin"
