@@ -1,8 +1,5 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Run bot
 
-# Controls when the workflow will run
 on:
   workflow_dispatch:
   push:
@@ -17,27 +14,44 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
       - name: Python Dependency Installation
         uses: py-actions/py-dependency-install@v4.0.0
-        
+
       - name: Injection For my Repo
         run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
-          
+
+      - name: Restore last run cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .last_run_matchmaking
+          key: last-bot-run-marker
+
       - name: Stockfish
         run: |
           chmod +x ./engines/stockfish
 
-      - name: Running bot
-        run: python -u user_interface.py --matchmaking
+      - name: Decide and run the bot
+        run: |
+          if [ -f .last_run_matchmaking ]; then
+            echo "Running: python -u user_interface.py"
+            python -u user_interface.py
+            rm -f .last_run_matchmaking
+          else
+            echo "Running: python user_interface.py --matchmaking"
+            python user_interface.py --matchmaking
+            touch .last_run_matchmaking
+          fi
+
+      - name: Save last run cache
+        uses: actions/cache@v4
+        with:
+          path: .last_run_matchmaking
+          key: last-bot-run-marker
