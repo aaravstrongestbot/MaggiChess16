@@ -45,8 +45,8 @@ jobs:
             python -u user_interface.py
             rm -f .last_run_matchmaking
           else
-            echo "Running: python user_interface.py --matchmaking"
-            python user_interface.py --matchmaking
+            echo "Running: python -u user_interface.py --matchmaking"
+            python -u user_interface.py --matchmaking
             touch .last_run_matchmaking
           fi
 
