@@ -1,4 +1,5 @@
-name: Run Bot Modes
+
+name: Run bot
 
 on:
   workflow_dispatch:
@@ -8,70 +9,60 @@ on:
     paths:
       - "user_interface.py"
   schedule:
-    - cron: "1 */5 * * *"
-
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: write
+    - cron: "1 */5 * * *"  # Every 5 hours at minute 1
 
 jobs:
-  alternate-bot:
+  build:
+    concurrency:
+      group: bot-run
+      cancel-in-progress: false  # Keep this false for fastest restarts
+
     runs-on: ubuntu-latest
+    timeout-minutes: 355  # Just under 6-hour GitHub limit
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Python Dependency Installation
-        uses: py-actions/py-dependency-install@v4.0.0
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
 
-      - name: Injection For my Repo
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Inject Secret Token
         run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
 
-      - name: Stockfish
+      - name: Make Stockfish Executable
         run: chmod +x ./engines/stockfish
-
-      # Step 1: Ensure the mode file exists (creates as 'default' if missing)
-      - name: Ensure mode file exists
+    
+      - name: Run Bot
         run: |
-          if [ ! -f .github/bot_mode.txt ]; then
-            echo "default" > .github/bot_mode.txt
-            git config user.name github-actions
-            git config user.email github-actions@github.com
-            git add .github/bot_mode.txt
-            git commit -m "Initialize bot_mode.txt"
-            git push
-          fi
+          echo "Starting bot..."
+          python3 -u user_interface.py --matchmaking &
+          PID=$!
+          
+          # Auto-exit after 350 minutes (so restart runs without overlap)
+          ( sleep 21000 && echo "Time up. Killing bot..." && kill -SIGTERM $PID ) &
+          
+          wait $PID
+          echo "Bot ended cleanly."
 
-      # Step 2: Read the current mode
-      - name: Read mode
-        id: mode
-        run: |
-          MODE=$(cat .github/bot_mode.txt)
-          echo "MODE=$MODE" >> $GITHUB_ENV
-
-      # Step 4: Switch the mode for the next run and commit the change
-      - name: Switch Mode
-        run: |
-          if [ "$MODE" = "default" ]; then
-            echo "matchmaking" > .github/bot_mode.txt
-          else
-            echo "default" > .github/bot_mode.txt
-          fi
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .github/bot_mode.txt
-          git commit -m "Switch bot mode"
-          git push
+      - name: Self-Restart
+        if: always()
+        run: gh workflow run bot.yml
         env:
-          MODE: ${{ env.MODE }}
-
-      # Step 3: Run the correct command based on the mode
-      - name: Run bot (default)
-        if: env.MODE == 'default'
-        run: python -u user_interface.py
-
-      - name: Run bot (matchmaking)
-        if: env.MODE == 'matchmaking'
-        run: python -u user_interface.py --matchmaking
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
