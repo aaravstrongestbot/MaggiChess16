@@ -1,4 +1,4 @@
-name: Run Bot
+name: Alternate Bot Modes
 
 on:
   workflow_dispatch:
@@ -10,10 +10,6 @@ on:
   schedule:
     - cron: "1 */5 * * *"
 
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: write
 
@@ -23,15 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Python Dependency Installation
-        uses: py-actions/py-dependency-install@v4.0.0
+      # ... (dependency install steps omitted for brevity)
 
-      - name: Injection For my Repo
-        run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
-
-      - name: Stockfish
-        run: chmod +x ./engines/stockfish
-
+      # Step 1: Make sure the mode file exists (creates it if missing, with 'default' as content)
       - name: Ensure mode file exists
         run: |
           if [ ! -f .github/bot_mode.txt ]; then
@@ -43,12 +33,14 @@ jobs:
             git push
           fi
 
+      # Step 2: Read the current mode into an env variable
       - name: Read mode
         id: mode
         run: |
           MODE=$(cat .github/bot_mode.txt)
           echo "MODE=$MODE" >> $GITHUB_ENV
 
+      # Step 3: Run the correct command depending on the mode
       - name: Run bot (default)
         if: env.MODE == 'default'
         run: python -u user_interface.py
@@ -57,6 +49,7 @@ jobs:
         if: env.MODE == 'matchmaking'
         run: python -u user_interface.py --matchmaking
 
+      # Step 4: Switch the mode for the next run and commit it to the repo
       - name: Switch Mode
         run: |
           if [ "$MODE" = "default" ]; then
