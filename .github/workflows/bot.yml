@@ -1,4 +1,4 @@
-name: Run bot
+name: Run Bot
 
 on:
   workflow_dispatch:
@@ -14,10 +14,12 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  alternate-bot:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -27,31 +29,45 @@ jobs:
       - name: Injection For my Repo
         run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
 
-      - name: Restore last run cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: .last_run_matchmaking
-          key: last-bot-run-marker
-
       - name: Stockfish
-        run: |
-          chmod +x ./engines/stockfish
+        run: chmod +x ./engines/stockfish
 
-      - name: Decide and run the bot
+      - name: Ensure mode file exists
         run: |
-          if [ -f .last_run_matchmaking ]; then
-            echo "Running: python -u user_interface.py"
-            python -u user_interface.py
-            rm -f .last_run_matchmaking
-          else
-            echo "Running: python -u user_interface.py --matchmaking"
-            python -u user_interface.py --matchmaking
-            touch .last_run_matchmaking
+          if [ ! -f .github/bot_mode.txt ]; then
+            echo "default" > .github/bot_mode.txt
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .github/bot_mode.txt
+            git commit -m "Initialize bot_mode.txt"
+            git push
           fi
 
-      - name: Save last run cache
-        uses: actions/cache@v4
-        with:
-          path: .last_run_matchmaking
-          key: last-bot-run-marker
+      - name: Read mode
+        id: mode
+        run: |
+          MODE=$(cat .github/bot_mode.txt)
+          echo "MODE=$MODE" >> $GITHUB_ENV
+
+      - name: Run bot (default)
+        if: env.MODE == 'default'
+        run: python -u user_interface.py
+
+      - name: Run bot (matchmaking)
+        if: env.MODE == 'matchmaking'
+        run: python -u user_interface.py --matchmaking
+
+      - name: Switch Mode
+        run: |
+          if [ "$MODE" = "default" ]; then
+            echo "matchmaking" > .github/bot_mode.txt
+          else
+            echo "default" > .github/bot_mode.txt
+          fi
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .github/bot_mode.txt
+          git commit -m "Switch bot mode"
+          git push
+        env:
+          MODE: ${{ env.MODE }}
