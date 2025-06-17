@@ -1,5 +1,4 @@
-
-name: Run bot
+name: Alternate Bot Modes
 
 on:
   workflow_dispatch:
@@ -9,60 +8,56 @@ on:
     paths:
       - "user_interface.py"
   schedule:
-    - cron: "1 */5 * * *"  # Every 5 hours at minute 1
+    - cron: "1 */5 * * *"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    concurrency:
-      group: bot-run
-      cancel-in-progress: false  # Keep this false for fastest restarts
-
+  alternate-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 355  # Just under 6-hour GitHub limit
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Install GitHub CLI
-        run: sudo apt-get update && sudo apt-get install -y gh
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Inject Secret Token
-        run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
-
-      - name: Make Stockfish Executable
-        run: chmod +x ./engines/stockfish
-    
-      - name: Run Bot
+      - name: Ensure mode file exists
         run: |
-          echo "Starting bot..."
-          python3 -u user_interface.py --matchmaking &
-          PID=$!
-          
-          # Auto-exit after 350 minutes (so restart runs without overlap)
-          ( sleep 21000 && echo "Time up. Killing bot..." && kill -SIGTERM $PID ) &
-          
-          wait $PID
-          echo "Bot ended cleanly."
+          if [ ! -f .github/bot_mode.txt ]; then
+            echo "default" > .github/bot_mode.txt
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .github/bot_mode.txt
+            git commit -m "Initialize bot_mode.txt"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git push
+          fi
 
-      - name: Self-Restart
-        if: always()
-        run: gh workflow run bot.yml
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Switch Mode (before run)
+        id: switch
+        run: |
+          MODE=$(cat .github/bot_mode.txt)
+          if [ "$MODE" = "default" ]; then
+            echo "matchmaking" > .github/bot_mode.txt
+            NEXTMODE="matchmaking"
+          else
+            echo "default" > .github/bot_mode.txt
+            NEXTMODE="default"
+          fi
+          echo "NEXTMODE=$NEXTMODE" >> $GITHUB_ENV
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .github/bot_mode.txt
+          git commit -m "Switch bot mode" || echo "No changes to commit"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git pull --rebase
+          git push
+
+      - name: Debug env
+        run: env
+
+      - name: Run bot (default)
+        if: env.NEXTMODE == 'default'
+        run: python -u user_interface.py
+
+      - name: Run bot (matchmaking)
+        if: env.NEXTMODE == 'matchmaking'
+        run: python -u user_interface.py --matchmaking
