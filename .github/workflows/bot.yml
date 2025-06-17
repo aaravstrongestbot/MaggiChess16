@@ -1,4 +1,4 @@
-name: Alternate Bot Modes
+name: Run Bot
 
 on:
   workflow_dispatch:
