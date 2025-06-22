@@ -20,27 +20,29 @@ concurrency:
 permissions:
   contents: write
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
       - name: Python Dependency Installation
         uses: py-actions/py-dependency-install@v4.0.0
-        
+
       - name: Injection For my Repo
         run: sed -i "s/TokenTimeIsBackBuddyss/${{ secrets.LICHESS_KEY }}/g" config.yml
-          
+
       - name: Stockfish
         run: |
           chmod +x ./engines/stockfish
 
-      - name: Running bot
-        run: python -u user_interface.py --matchmaking
+      - name: Alternate between normal and matchmaking
+        run: |
+          if (( $GITHUB_RUN_NUMBER % 2 == 1 )); then
+            echo "Running: python -u user_interface.py"
+            python -u user_interface.py
+          else
+            echo "Running: python -u user_interface.py --matchmaking"
+            python -u user_interface.py --matchmaking
+          fi
