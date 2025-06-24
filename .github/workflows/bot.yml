@@ -39,5 +39,9 @@ jobs:
 
       - name: Alternate between normal and matchmaking
         run: |
+            if (( $GITHUB_RUN_NUMBER % 2 == 1 )); then
             python -u user_interface.py
+            else
+            python -u user_interface.py --matchmaking
+            fi
 
