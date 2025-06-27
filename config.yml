@@ -161,7 +161,7 @@ challenge:                                # Incoming challenges. (Commenting all
     - rated                               # Rated games
 
 matchmaking:
-  delay: 180                              # Time in seconds the bot must be idle before a new challenge is started.
+  delay: 240                              # Time in seconds the bot must be idle before a new challenge is started.
   timeout: 30                             # Time until a challenge is canceled.
   selection: cyclic                       # Matchmkaing type selection is one of "weighted_random", "sequential" or "cyclic".
   types:                                  # Matchmaking types of which one is selected before each game.
@@ -169,10 +169,10 @@ matchmaking:
       tc: 0.5+0                           # Time control in initial_minutes+increment_seconds format.
       min_rating_diff: 300                # Minimum rating distance to opponent. Default: 0
       max_rating_diff: 1000               # Maximum rating distance to opponent. Default: 10000
-    casual_chess960:
-      tc: 0.5+1
-      rated: false
-      variant: chess960
+#   casual_chess960:
+#     tc: 0.5+0
+#     rated: false
+#     variant: chess960
 # optional_settings:
 #     rated: false                        # Whether matchmaking should play rated games. Default: true
 #     variant: standard                   # Chess variant (https://lichess.org/variant) to challenge. Default: standard
