@@ -135,7 +135,7 @@ resign:
   enabled: false                          # Activate whether the bot should resign games.
   score: -1000                            # If the score is less than or equal to this value, the bot resigns (in cp).
   consecutive_moves: 5                    # How many moves in a row the score has to be below the resign value.
-  against_humans: true                    # Activate whether these settings should apply against humans.
+  against_humans: false                    # Activate whether these settings should apply against humans.
 
 challenge:                                # Incoming challenges. (Commenting allowed)
   concurrency: 2                          # Number of games to play simultaneously.
@@ -167,7 +167,7 @@ challenge:                                # Incoming challenges. (Commenting all
 #   - rated                               # Rated games
   human_modes:                            # Game modes to accept against humans.
     - casual                              # Unrated games.
-    - rated                               # Rated games
+#   - rated                               # Rated games
 
 matchmaking:
   delay: 180                              # Time in seconds the bot must be idle before a new challenge is started.
