@@ -11,16 +11,7 @@ engines:
       Threads: 6                          # Max CPU threads the engine can use.
       Hash: 512                          # Max memory (in megabytes) the engine can allocate.
       Move Overhead: 250                 # Increase if your bot flags games too often.
- chess960:
-    dir: "./engines"
-    name: "stockfish"
-    ponder: true
-    silence_stderr: false
-    move_overhead_multiplier: 2.5
-    uci_options:
-      Threads: 6
-      Hash: 512
-      Move Overhead: 250                              # Engine used for variants when no suitable special engine is configured.
+                               # Engine used for variants when no suitable special engine is configured.
 #   dir: "./engines"                      # Directory containing the engine.
 #   name: "fairy-stockfish"               # Binary name of the engine to use.
 #   ponder: true                          # Think on opponent's time.
